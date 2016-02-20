@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
@@ -45,15 +46,14 @@ public class MovieArrayAdapter extends RecyclerView.Adapter<MovieArrayAdapter.Mo
         final MovieObject object = movieObjectList.get(position);
         holder.mLoadingBar.setVisibility(View.VISIBLE);
         holder.mImageView.setVisibility(View.GONE);
-        if(object.imgPath.compareToIgnoreCase("") != 0)
+        if(object.movie_poster.compareToIgnoreCase("") != 0)
         {
-            final String IMAGE_BASE_URI = "http://image.tmdb.org/t/p/";
-            final String RESOLUTION = "w185";
-            Uri uri = Uri.parse(IMAGE_BASE_URI).buildUpon().appendPath(RESOLUTION).appendEncodedPath(object.imgPath).build();
+            Uri uri = Uri.parse(MovieObjectUtils.IMAGE_PREFIX).buildUpon().appendEncodedPath(object.movie_poster).build();
             Log.v(MovieObjectUtils.LOG_TAG,"Getting image : " + uri.toString());
             Picasso.with(mContext).load(uri.toString()).into(holder.mImageView, new Callback() {
                 @Override
                 public void onSuccess() {
+                    holder.mMovieLoaded = true;
                     holder.mLoadingBar.setVisibility(View.GONE);
                     holder.mImageView.setVisibility(View.VISIBLE);
                 }
@@ -68,10 +68,13 @@ public class MovieArrayAdapter extends RecyclerView.Adapter<MovieArrayAdapter.Mo
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext,DetailActivity.class);
-                intent.putExtra(MovieObjectUtils.KEY_OBJECT_ID_EXTRA,object.id);
-                intent.putExtra(MovieObjectUtils.KEY_OBJECT_CONTENT_EXTRA,object.content);
-                mContext.startActivity(intent);
+                if(holder.mMovieLoaded) {
+                    Intent intent = new Intent(mContext,MovieDetails.class);
+                    intent.putExtra(MovieObjectUtils.KEY_OBJECT_CONTENT_EXTRA,object.content);
+                    mContext.startActivity(intent);
+                } else {
+                    Toast.makeText(mContext,mContext.getString(R.string.loading_movie_details),Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -88,6 +91,7 @@ public class MovieArrayAdapter extends RecyclerView.Adapter<MovieArrayAdapter.Mo
         public View mView;
         public ImageView mImageView;
         public ProgressBar mLoadingBar;
+        public volatile boolean mMovieLoaded = false;
 
         MovieViewHolder(View inView) {
             super(inView);

@@ -1,5 +1,6 @@
 package com.bsdsolutions.sanjaydixit.p1_popular_movies_app;
 
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
@@ -54,7 +55,7 @@ public class MainActivityFragment extends Fragment {
         List<MovieObject> movieObjects = new ArrayList<>();
 
         for (int i = 0; i < 20; i++) {
-            movieObjects.add(new MovieObject(i,"",""));
+            movieObjects.add(new MovieObject(""));
         }
 
         RecyclerView rv = (RecyclerView) inflater.inflate(R.layout.fragment_main, container, false);
@@ -62,7 +63,10 @@ public class MainActivityFragment extends Fragment {
         //Set LayoutManager and Adapter
         movieArrayAdapter = new MovieArrayAdapter(getContext(), movieObjects);
         //TODO: If Orientation is different make it 3
-        rv.setLayoutManager(new GridLayoutManager(rv.getContext(), 2));
+        if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE)
+            rv.setLayoutManager(new GridLayoutManager(rv.getContext(), 3));
+        else
+            rv.setLayoutManager(new GridLayoutManager(rv.getContext(), 2));
         rv.setAdapter(movieArrayAdapter);
 
         return rv;
@@ -80,7 +84,9 @@ public class MainActivityFragment extends Fragment {
     }
 
     public static void updateMovieList(boolean sortByPopularity) {
-
+        if(mLoadTask.getStatus() == AsyncTask.Status.RUNNING) {
+            mLoadTask.cancel(true);
+        }
     }
 
     private class MovieLoadTask extends AsyncTask<Boolean, Void, List<MovieObject>> {
@@ -97,10 +103,7 @@ public class MainActivityFragment extends Fragment {
 
             for(int i=0; i<length ; i++) {
                 JSONObject movie = results.getJSONObject(i);
-                String posterPath = movie.getString("poster_path");
-                int id = movie.getInt("id");
-                Log.d(MovieObjectUtils.LOG_TAG,"Movie :" + movie.getString("original_title") + "poster_path : " + posterPath );
-                MovieObject obj = new MovieObject(id,posterPath,movie.toString());
+                MovieObject obj = new MovieObject(movie);
                 movieObjectList.add(obj);
             }
 
@@ -193,7 +196,7 @@ public class MainActivityFragment extends Fragment {
             List<MovieObject> movieObjects = new ArrayList<>();
 
             for (int i = 0; i < 20; i++) {
-                movieObjects.add(new MovieObject(i,"",""));
+                movieObjects.add(new MovieObject(""));
             }
             movieArrayAdapter.updateDataSet(movieObjects);
             super.onCancelled();
