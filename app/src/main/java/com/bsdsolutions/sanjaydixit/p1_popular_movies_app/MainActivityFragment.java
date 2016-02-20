@@ -97,6 +97,13 @@ public class MainActivityFragment extends Fragment {
         }
         if(mLoadTask.getStatus() == AsyncTask.Status.RUNNING) {
             mLoadTask.cancel(true);
+        } else {
+            List<MovieObject> movieObjects = new ArrayList<>();
+
+            for (int i = 0; i < 20; i++) {
+                movieObjects.add(new MovieObject(""));
+            }
+            movieArrayAdapter.updateDataSet(movieObjects);
         }
         mLoadTask = new MovieLoadTask();
         mLoadTask.execute(sortByPopularity);

@@ -62,6 +62,7 @@ public class MovieArrayAdapter extends RecyclerView.Adapter<MovieArrayAdapter.Mo
 
                 @Override
                 public void onError() {
+                    holder.mMovieLoaded = true;
                     holder.mErrorText.setVisibility(View.VISIBLE);
                     holder.mLoadingBar.setVisibility(View.GONE);
                 }
@@ -70,8 +71,9 @@ public class MovieArrayAdapter extends RecyclerView.Adapter<MovieArrayAdapter.Mo
         else
         {
             if(object.id != -1) {   //Skip case where the values are dummy variables
+                holder.mMovieLoaded = true;
+                holder.mLoadingBar.setVisibility(View.GONE);
                 holder.mErrorText.setVisibility(View.VISIBLE);
-                holder.mErrorText.setText(mContext.getString(R.string.image_load_fail));
             }
         }
 

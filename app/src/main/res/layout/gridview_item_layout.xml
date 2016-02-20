@@ -25,6 +25,6 @@
         android:layout_height="match_parent"
         android:textAlignment="center"
         android:gravity="center"
-        android:visibility="gone"
+        android:textSize="20sp"
         android:text="@string/image_load_fail"/>
 </LinearLayout>

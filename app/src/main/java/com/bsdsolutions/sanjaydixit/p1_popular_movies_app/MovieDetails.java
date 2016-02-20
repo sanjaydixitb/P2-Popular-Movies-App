@@ -68,8 +68,8 @@ public class MovieDetails extends AppCompatActivity {
                 }
             });
         } else {
+            mLoadingBar.setVisibility(View.GONE);
             mErrorText.setVisibility(View.VISIBLE);
-            mErrorText.setText(getString(R.string.image_load_fail));
         }
 
         String release_date = object.release_date;

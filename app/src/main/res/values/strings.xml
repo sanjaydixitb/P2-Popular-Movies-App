@@ -4,5 +4,5 @@
     <string name="synopsys_title">Synopsys</string>
     <string name="loading_movie_details">Loading movie details.</string>
     <string name="pick_sorting_criteria">Select Sorting Criteria:</string>image_load_fail
-    <string name="image_load_fail">Failed to Load Image</string>
+    <string name="image_load_fail">Failed to Load Image!</string>
 </resources>
