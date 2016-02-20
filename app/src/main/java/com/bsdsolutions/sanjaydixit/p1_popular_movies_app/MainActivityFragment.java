@@ -1,8 +1,13 @@
 package com.bsdsolutions.sanjaydixit.p1_popular_movies_app;
 
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.app.AlertDialog;
+import android.support.annotation.NonNull;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -33,7 +38,7 @@ import java.util.List;
  */
 public class MainActivityFragment extends Fragment {
 
-    private MovieArrayAdapter movieArrayAdapter = null;
+    private static MovieArrayAdapter movieArrayAdapter = null;
     private static MovieLoadTask mLoadTask = null;
     private static boolean mSortByPopularity = true;
 
@@ -46,7 +51,7 @@ public class MainActivityFragment extends Fragment {
 
 
         mLoadTask = new MovieLoadTask();
-        mLoadTask.execute();
+        mLoadTask.execute(mSortByPopularity);
 
         //has Options menu
         setHasOptionsMenu(true);
@@ -62,7 +67,6 @@ public class MainActivityFragment extends Fragment {
 
         //Set LayoutManager and Adapter
         movieArrayAdapter = new MovieArrayAdapter(getContext(), movieObjects);
-        //TODO: If Orientation is different make it 3
         if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE)
             rv.setLayoutManager(new GridLayoutManager(rv.getContext(), 3));
         else
@@ -80,16 +84,26 @@ public class MainActivityFragment extends Fragment {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        if(item.getItemId() == R.id.action_settings) {
+            DialogFragment newFragment = new SortingOptionDialog();
+            newFragment.show(getFragmentManager(), "sorting_criteria");
+        }
         return super.onOptionsItemSelected(item);
     }
 
     public static void updateMovieList(boolean sortByPopularity) {
+        if(mSortByPopularity == sortByPopularity) {
+            return;
+        }
         if(mLoadTask.getStatus() == AsyncTask.Status.RUNNING) {
             mLoadTask.cancel(true);
         }
+        mLoadTask = new MovieLoadTask();
+        mLoadTask.execute(sortByPopularity);
+        mSortByPopularity = sortByPopularity;
     }
 
-    private class MovieLoadTask extends AsyncTask<Boolean, Void, List<MovieObject>> {
+    private static class MovieLoadTask extends AsyncTask<Boolean, Void, List<MovieObject>> {
 
         private List<MovieObject> getMovieList(String movieJsonStr) throws JSONException {
 
@@ -121,6 +135,11 @@ public class MainActivityFragment extends Fragment {
             String movieJsonStr;
             List<MovieObject> updatedList = new ArrayList<>();
 
+            boolean sortByPopularity = true;
+
+            if(params.length > 0) {
+                sortByPopularity = params[0];
+            }
 
             //Using code from Sunshine App to get Movie Data!
 
@@ -129,10 +148,18 @@ public class MainActivityFragment extends Fragment {
                 final String SORT_PARAM = "sort_by";
                 final String API_KEY_PARAM = "api_key";
 
-                Uri builtUri = Uri.parse(MOVIEDB_BASE_URL).buildUpon()
-                        .appendQueryParameter(SORT_PARAM, "popularity.desc")
-                        .appendQueryParameter(API_KEY_PARAM, BuildConfig.TMDB_API_KEY).build();
+                Uri builtUri = null;
 
+                if(sortByPopularity) {
+                    builtUri = Uri.parse(MOVIEDB_BASE_URL).buildUpon()
+                            .appendQueryParameter(SORT_PARAM, "popularity.desc")
+                            .appendQueryParameter(API_KEY_PARAM, BuildConfig.TMDB_API_KEY).build();
+                }
+                else {
+                    builtUri = Uri.parse(MOVIEDB_BASE_URL).buildUpon()
+                            .appendQueryParameter(SORT_PARAM, "vote_average.desc")
+                            .appendQueryParameter(API_KEY_PARAM, BuildConfig.TMDB_API_KEY).build();
+                }
                 URL url = new URL(builtUri.toString());
 
                 // Create the request to OpenWeatherMap, and open the connection
@@ -200,6 +227,21 @@ public class MainActivityFragment extends Fragment {
             }
             movieArrayAdapter.updateDataSet(movieObjects);
             super.onCancelled();
+        }
+    }
+
+    public static class SortingOptionDialog extends DialogFragment {
+        @NonNull
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setTitle(R.string.pick_sorting_criteria)
+                    .setItems(R.array.sorting_options, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            updateMovieList(which == 0);
+                        }
+                    });
+            return builder.create();
         }
     }
 

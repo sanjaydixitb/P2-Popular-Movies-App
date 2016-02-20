@@ -52,9 +52,15 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:indeterminate="true"/>
-
-
             </LinearLayout>
+            <TextView
+                android:id="@+id/fail_load_image_textView_detail"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:textAlignment="center"
+                android:gravity="center"
+                android:visibility="gone"
+                android:text="@string/image_load_fail"/>
         </LinearLayout>
 
         <LinearLayout

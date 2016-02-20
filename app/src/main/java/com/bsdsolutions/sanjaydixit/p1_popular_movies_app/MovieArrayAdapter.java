@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.squareup.picasso.Callback;
@@ -45,8 +46,9 @@ public class MovieArrayAdapter extends RecyclerView.Adapter<MovieArrayAdapter.Mo
     public void onBindViewHolder(final MovieViewHolder holder, int position) {
         final MovieObject object = movieObjectList.get(position);
         holder.mLoadingBar.setVisibility(View.VISIBLE);
+        holder.mErrorText.setVisibility(View.GONE);
         holder.mImageView.setVisibility(View.GONE);
-        if(object.movie_poster.compareToIgnoreCase("") != 0)
+        if(object.movie_poster.compareToIgnoreCase("") != 0 && object.movie_poster.compareToIgnoreCase("null") != 0)
         {
             Uri uri = Uri.parse(MovieObjectUtils.IMAGE_PREFIX).buildUpon().appendEncodedPath(object.movie_poster).build();
             Log.v(MovieObjectUtils.LOG_TAG,"Getting image : " + uri.toString());
@@ -60,9 +62,17 @@ public class MovieArrayAdapter extends RecyclerView.Adapter<MovieArrayAdapter.Mo
 
                 @Override
                 public void onError() {
-                    //TODO: Add error image
+                    holder.mErrorText.setVisibility(View.VISIBLE);
+                    holder.mLoadingBar.setVisibility(View.GONE);
                 }
             });
+        }
+        else
+        {
+            if(object.id != -1) {   //Skip case where the values are dummy variables
+                holder.mErrorText.setVisibility(View.VISIBLE);
+                holder.mErrorText.setText(mContext.getString(R.string.image_load_fail));
+            }
         }
 
         holder.mView.setOnClickListener(new View.OnClickListener() {
@@ -91,6 +101,7 @@ public class MovieArrayAdapter extends RecyclerView.Adapter<MovieArrayAdapter.Mo
         public View mView;
         public ImageView mImageView;
         public ProgressBar mLoadingBar;
+        public TextView mErrorText;         //Can be used to display other error messages later
         public volatile boolean mMovieLoaded = false;
 
         MovieViewHolder(View inView) {
@@ -99,6 +110,7 @@ public class MovieArrayAdapter extends RecyclerView.Adapter<MovieArrayAdapter.Mo
             mImageView = (ImageView)inView.findViewById(R.id.gridView_movie_thumbnail);
             mImageView.setAdjustViewBounds(true);
             mLoadingBar = (ProgressBar)inView.findViewById(R.id.loadingAnimation);
+            mErrorText = (TextView)inView.findViewById(R.id.fail_load_image_textView);
         }
 
     }
