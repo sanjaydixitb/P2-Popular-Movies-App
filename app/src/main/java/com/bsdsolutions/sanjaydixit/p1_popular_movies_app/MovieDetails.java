@@ -15,7 +15,7 @@ import com.squareup.picasso.Picasso;
 
 public class MovieDetails extends AppCompatActivity {
 
-    TextView mDate = null,mVoteAverage = null,mSynopsys = null;
+    TextView mDate = null,mVoteAverage = null,mSynopsys = null, mTitle = null;
     ImageView mPoster = null;
     ProgressBar mLoadingBar = null;
 
@@ -38,6 +38,7 @@ public class MovieDetails extends AppCompatActivity {
         mPoster.setAdjustViewBounds(true);
         mDate = (TextView)findViewById(R.id.synopsys_date);
         mSynopsys = (TextView)findViewById(R.id.synopsys_detail);
+        mTitle = (TextView)findViewById(R.id.movie_title);
         mVoteAverage = (TextView)findViewById(R.id.vote_average_detail);
         mLoadingBar = (ProgressBar)findViewById(R.id.detailLoadingAnimation);
 
@@ -59,6 +60,7 @@ public class MovieDetails extends AppCompatActivity {
         String release_date = object.release_date;
         String releaseYear = release_date.substring(0,release_date.indexOf("-"));
         mDate.setText(releaseYear);
+        mTitle.setText(object.title);
         mSynopsys.setText(object.plot_synopsis);
         mVoteAverage.setText(String.valueOf(object.vote_average) + "/10");
     }
