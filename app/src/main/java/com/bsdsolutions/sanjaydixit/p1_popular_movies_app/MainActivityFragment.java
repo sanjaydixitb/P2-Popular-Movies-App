@@ -19,6 +19,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -87,11 +88,13 @@ public class MainActivityFragment extends Fragment {
         if(item.getItemId() == R.id.action_settings) {
             DialogFragment newFragment = new SortingOptionDialog();
             newFragment.show(getFragmentManager(), "sorting_criteria");
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
     public static void updateMovieList(boolean sortByPopularity) {
+        //If it is already sorted by popularity, no need to fetch data again.
         if(mSortByPopularity == sortByPopularity) {
             return;
         }
@@ -114,13 +117,15 @@ public class MainActivityFragment extends Fragment {
 
         private List<MovieObject> getMovieList(String movieJsonStr) throws JSONException {
 
+            final String KEY_RESULTS = "results";
+
             List<MovieObject> movieObjectList = new ArrayList<>();
             JSONObject object = new JSONObject(movieJsonStr);
 
-            JSONArray results = object.getJSONArray("results");
+            JSONArray results = object.getJSONArray(KEY_RESULTS);
 
             int length = results.length();
-            Log.d(MovieObjectUtils.LOG_TAG,"Got " + length + " movies!");
+            Log.v(MovieObjectUtils.LOG_TAG,"Got " + length + " movies!");
 
             for(int i=0; i<length ; i++) {
                 JSONObject movie = results.getJSONObject(i);
@@ -154,19 +159,19 @@ public class MainActivityFragment extends Fragment {
                 final String MOVIEDB_BASE_URL = "http://api.themoviedb.org/3/discover/movie";
                 final String SORT_PARAM = "sort_by";
                 final String API_KEY_PARAM = "api_key";
+                final String SORT_PARAM_POPULARITY = "popularity.desc";
+                final String SORT_PARAM_VOTE = "vote_average.desc";
+                String sortParam = SORT_PARAM_POPULARITY;
+
+                if(!sortByPopularity) {
+                    sortParam = SORT_PARAM_VOTE;
+                }
 
                 Uri builtUri = null;
+                builtUri = Uri.parse(MOVIEDB_BASE_URL).buildUpon()
+                        .appendQueryParameter(SORT_PARAM, sortParam)
+                        .appendQueryParameter(API_KEY_PARAM, BuildConfig.TMDB_API_KEY).build();
 
-                if(sortByPopularity) {
-                    builtUri = Uri.parse(MOVIEDB_BASE_URL).buildUpon()
-                            .appendQueryParameter(SORT_PARAM, "popularity.desc")
-                            .appendQueryParameter(API_KEY_PARAM, BuildConfig.TMDB_API_KEY).build();
-                }
-                else {
-                    builtUri = Uri.parse(MOVIEDB_BASE_URL).buildUpon()
-                            .appendQueryParameter(SORT_PARAM, "vote_average.desc")
-                            .appendQueryParameter(API_KEY_PARAM, BuildConfig.TMDB_API_KEY).build();
-                }
                 URL url = new URL(builtUri.toString());
 
                 // Create the request to OpenWeatherMap, and open the connection

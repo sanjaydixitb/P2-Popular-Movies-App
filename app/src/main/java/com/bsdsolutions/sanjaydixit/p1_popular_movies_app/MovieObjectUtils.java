@@ -11,7 +11,7 @@ public class MovieObjectUtils {
 
     public static final String IMAGE_BASE_URI = "http://image.tmdb.org/t/p/";
 
-    public static final String RESOLUTION = "w185";
+    public static final String RESOLUTION = "w185"; //Dynamically change to higher value if tablet?
 
     public static final String IMAGE_PREFIX = IMAGE_BASE_URI + RESOLUTION;
 

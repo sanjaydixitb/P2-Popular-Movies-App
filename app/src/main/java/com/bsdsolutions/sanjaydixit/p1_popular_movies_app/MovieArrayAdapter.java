@@ -32,6 +32,10 @@ public class MovieArrayAdapter extends RecyclerView.Adapter<MovieArrayAdapter.Mo
     }
 
     public void updateDataSet(List<MovieObject> movieObjects) {
+        if(movieObjects.size() == 0) {
+            //Dummy objects have size 20. Size == 0 means failed to retrieve data from internet.
+            Toast.makeText(mContext,"Failed to fetch movie data!", Toast.LENGTH_SHORT).show();
+        }
         movieObjectList = movieObjects;
         this.notifyDataSetChanged();
     }
@@ -45,35 +49,44 @@ public class MovieArrayAdapter extends RecyclerView.Adapter<MovieArrayAdapter.Mo
     @Override
     public void onBindViewHolder(final MovieViewHolder holder, int position) {
         final MovieObject object = movieObjectList.get(position);
-        holder.mLoadingBar.setVisibility(View.VISIBLE);
-        holder.mErrorText.setVisibility(View.GONE);
-        holder.mImageView.setVisibility(View.GONE);
-        if(object.movie_poster.compareToIgnoreCase("") != 0 && object.movie_poster.compareToIgnoreCase("null") != 0)
+
+        final TextView errorText = holder.mErrorText;
+        final ImageView imageView = holder.mImageView;
+        final ProgressBar loadingBar = holder.mLoadingBar;
+
+        final String posterPath = object.movie_poster;
+
+        loadingBar.setVisibility(View.VISIBLE);
+        errorText.setVisibility(View.GONE);
+        imageView.setVisibility(View.GONE);
+
+        //Poster path is empty for dummy data and null if image is not available in the database.
+        if(posterPath.compareToIgnoreCase("") != 0 && posterPath.compareToIgnoreCase("null") != 0)
         {
-            Uri uri = Uri.parse(MovieObjectUtils.IMAGE_PREFIX).buildUpon().appendEncodedPath(object.movie_poster).build();
-            Log.v(MovieObjectUtils.LOG_TAG,"Getting image : " + uri.toString());
-            Picasso.with(mContext).load(uri.toString()).into(holder.mImageView, new Callback() {
+            Uri uri = Uri.parse(MovieObjectUtils.IMAGE_PREFIX).buildUpon().appendEncodedPath(posterPath).build();
+            //Log.v(MovieObjectUtils.LOG_TAG,"Getting image : " + uri.toString());
+            Picasso.with(mContext).load(uri.toString()).into(imageView, new Callback() {
                 @Override
                 public void onSuccess() {
                     holder.mMovieLoaded = true;
-                    holder.mLoadingBar.setVisibility(View.GONE);
-                    holder.mImageView.setVisibility(View.VISIBLE);
+                    loadingBar.setVisibility(View.GONE);
+                    imageView.setVisibility(View.VISIBLE);
                 }
 
                 @Override
                 public void onError() {
                     holder.mMovieLoaded = true;
-                    holder.mErrorText.setVisibility(View.VISIBLE);
-                    holder.mLoadingBar.setVisibility(View.GONE);
+                    errorText.setVisibility(View.VISIBLE);
+                    loadingBar.setVisibility(View.GONE);
                 }
             });
         }
         else
         {
-            if(object.id != -1) {   //Skip case where the values are dummy variables
+            if(posterPath.compareToIgnoreCase("null") == 0) {   //Image Not Available
                 holder.mMovieLoaded = true;
-                holder.mLoadingBar.setVisibility(View.GONE);
-                holder.mErrorText.setVisibility(View.VISIBLE);
+                loadingBar.setVisibility(View.GONE);
+                errorText.setVisibility(View.VISIBLE);
             }
         }
 

@@ -20,12 +20,10 @@ public class MovieObject {
 
     MovieObject(String JSONContent) {
         parseMovieObject(JSONContent);
-        Log.d(MovieObjectUtils.LOG_TAG, "ID : " + id + " Movie_poster : " + movie_poster);
     }
 
     MovieObject(JSONObject movieObject) {
         parseMovieObject(movieObject);
-        Log.d(MovieObjectUtils.LOG_TAG, "ID : " + id + " Movie_poster : " + movie_poster);
     }
 
     void parseMovieObject(String JSONContent) {
@@ -62,10 +60,10 @@ public class MovieObject {
             plot_synopsis = movie.getString(KEY_PLOT_SYNOPSYS);
             vote_average = movie.getDouble(KEY_VOTE_AVERAGE);
             content = movie.toString();
-            Log.d(MovieObjectUtils.LOG_TAG,"ID : " + id + " Movie_poster : " + movie_poster);
+            Log.d(MovieObjectUtils.LOG_TAG,"Movie details loaded : " + title);
 
         } catch (JSONException e) {
-            Log.e(MovieObjectUtils.LOG_TAG,"Exception : " + e);
+            Log.e(MovieObjectUtils.LOG_TAG,"Exception while loading movie details!",e);
             //Put Default Values
             movie_poster = "";
             id = -1;

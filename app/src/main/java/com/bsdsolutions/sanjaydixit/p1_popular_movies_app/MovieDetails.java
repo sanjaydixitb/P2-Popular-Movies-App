@@ -77,6 +77,7 @@ public class MovieDetails extends AppCompatActivity {
         int yearDelimiter = release_date.indexOf("-");
         if(yearDelimiter != -1)
             releaseYear = release_date.substring(0,yearDelimiter);
+
         mDate.setText(releaseYear);
         mTitle.setText(object.title);
         mSynopsys.setText(object.plot_synopsis);
