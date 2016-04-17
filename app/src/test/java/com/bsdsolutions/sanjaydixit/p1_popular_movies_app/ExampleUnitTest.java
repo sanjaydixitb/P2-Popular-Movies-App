@@ -1,4 +1,4 @@
-package com.bsdsolutions.sanjaydixit.p1_popular_movies_app;
+package com.bsdsolutions.sanjaydixit.p2_popular_movies_app;
 
 import org.junit.Test;
 

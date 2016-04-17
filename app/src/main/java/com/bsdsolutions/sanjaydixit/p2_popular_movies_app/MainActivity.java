@@ -1,4 +1,4 @@
-package com.bsdsolutions.sanjaydixit.p1_popular_movies_app;
+package com.bsdsolutions.sanjaydixit.p2_popular_movies_app;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;

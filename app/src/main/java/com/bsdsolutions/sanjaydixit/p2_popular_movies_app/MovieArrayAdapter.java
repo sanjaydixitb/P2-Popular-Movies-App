@@ -1,10 +1,9 @@
-package com.bsdsolutions.sanjaydixit.p1_popular_movies_app;
+package com.bsdsolutions.sanjaydixit.p2_popular_movies_app;
 
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
