@@ -5,7 +5,7 @@ package com.bsdsolutions.sanjaydixit.p2_popular_movies_app;
  */
 public enum AppendToResponseItem {
 
-    VIDEOS("videos"),
+    VIDEOS("results"),
     RELEASE_DATES("release_dates"),
     CREDITS("credits"),
     SIMILAR("similar"),

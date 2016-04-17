@@ -8,7 +8,7 @@ import retrofit2.http.Query;
 /**
  * Created by sanjaydixit on 17/04/16.
  */
-public class MovieObjectRetreiverService {
+public interface MovieObjectRetreiverService {
     /**
      * Get the basic movie information for a specific movie id.
      *
@@ -24,13 +24,13 @@ public class MovieObjectRetreiverService {
     );
 
     /**
-     * Get the videos (trailers, teasers, clips, etc...) for a specific movie id.
+     * Get the results (trailers, teasers, clips, etc...) for a specific movie id.
      *
      * @param tmdbId TMDb id.
      * @param language <em>Optional.</em> ISO 639-1 code.
      */
     @GET("movie/{id}/videos")
-    Call<Video> videos(
+    Call<Videos> videos(
             @Path("id") int tmdbId,
             @Query("language") String language
     );

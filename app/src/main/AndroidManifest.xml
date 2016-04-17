@@ -20,7 +20,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.bsdsolutions.sanjaydixit.p2_popular_movies_app.MovieDetails"></activity>
     </application>
 
 </manifest>

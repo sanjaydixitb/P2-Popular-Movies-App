@@ -1,5 +1,6 @@
 package com.bsdsolutions.sanjaydixit.p2_popular_movies_app;
 
+import android.support.v4.app.FragmentActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -23,9 +24,11 @@ import java.util.List;
 public class MovieArrayAdapter extends RecyclerView.Adapter<MovieArrayAdapter.MovieViewHolder> {
 
     private Context mContext;
+    private FragmentActivity mActivity;
     private List<MovieObject> movieObjectList;
 
-    MovieArrayAdapter(Context context, List<MovieObject> movieObjects) {
+    MovieArrayAdapter(FragmentActivity activity, Context context, List<MovieObject> movieObjects) {
+        mActivity = activity;
         movieObjectList = movieObjects;
         mContext = context;
     }
@@ -53,7 +56,7 @@ public class MovieArrayAdapter extends RecyclerView.Adapter<MovieArrayAdapter.Mo
         final ImageView imageView = holder.mImageView;
         final ProgressBar loadingBar = holder.mLoadingBar;
 
-        final String posterPath = object.movie_poster;
+        final String posterPath = object.poster_path;
 
         loadingBar.setVisibility(View.VISIBLE);
         errorText.setVisibility(View.GONE);
@@ -93,9 +96,16 @@ public class MovieArrayAdapter extends RecyclerView.Adapter<MovieArrayAdapter.Mo
             @Override
             public void onClick(View v) {
                 if(holder.mMovieLoaded) {
-                    Intent intent = new Intent(mContext,MovieDetails.class);
-                    intent.putExtra(MovieObjectUtils.KEY_OBJECT_CONTENT_EXTRA,object.content);
-                    mContext.startActivity(intent);
+                    MovieDetailsFragment detailsFragment= MovieDetailsFragment.create(object);
+                    if(MainActivity.detailPage) {
+                        detailsFragment = (MovieDetailsFragment)mActivity.getSupportFragmentManager().findFragmentById(R.id.movie_details_container);
+                        detailsFragment.updateContent(object);
+                    } else {
+                        mActivity.getSupportFragmentManager().beginTransaction()
+                                .replace(R.id.movies_grid_container, detailsFragment, null)
+                                .addToBackStack(null)
+                                .commit();
+                    }
                 } else {
                     Toast.makeText(mContext,mContext.getString(R.string.loading_movie_details),Toast.LENGTH_SHORT).show();
                 }

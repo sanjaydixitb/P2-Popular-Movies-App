@@ -5,6 +5,9 @@ import java.util.List;
 /**
  * Created by sanjaydixit on 17/04/16.
  */
-public class MovieObjectResultsPage extends BaseResultsPage {
-    public List<MovieObject> results;
+public class Videos {
+
+    public Integer id;
+    public List<Video> results;
+
 }

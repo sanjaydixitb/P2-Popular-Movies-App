@@ -1,13 +1,8 @@
 package com.bsdsolutions.sanjaydixit.p2_popular_movies_app;
 
-import android.graphics.Movie;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.TextUtils;
-import android.util.Log;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.Date;
 
@@ -16,21 +11,21 @@ import java.util.Date;
  */
 public class MovieObject implements Parcelable {
     //To be used in recyclerView
-    public String movie_poster;  //For getting the thumbnail images
+    public String poster_path;  //For getting the thumbnail images
     public Integer id;              //For getting trailers and reviews later on.
-    public String title, plot_synopsis;
+    public String original_title, overview;
     public double vote_average;
 
     public Date release_date;
 
-    //To be used in MovieDetails
+    //To be used in MovieDetailsFragment
     public String content;
 
     protected MovieObject(Parcel in) {
         id = in.readInt();
-        title = in.readString();
-        plot_synopsis = in.readString();
-        movie_poster = in.readString();
+        original_title = in.readString();
+        overview = in.readString();
+        poster_path = in.readString();
         release_date = (Date) in.readSerializable();
         vote_average = in.readDouble();
     }
@@ -48,8 +43,8 @@ public class MovieObject implements Parcelable {
         }
     };
 
-    public String getMovie_poster() {
-        return TextUtils.join("/", new String[]{MovieObjectUtils.IMAGE_BASE_URI, MovieObjectUtils.RESOLUTION, movie_poster});
+    public String getPoster_path() {
+        return TextUtils.join("/", new String[]{MovieObjectUtils.IMAGE_BASE_URI, MovieObjectUtils.RESOLUTION, poster_path});
     }
 
     @Override
@@ -60,9 +55,9 @@ public class MovieObject implements Parcelable {
     @Override
     public void writeToParcel(Parcel parcel, int i) {
         parcel.writeInt(id);
-        parcel.writeString(title);
-        parcel.writeString(plot_synopsis);
-        parcel.writeString(movie_poster);
+        parcel.writeString(original_title);
+        parcel.writeString(overview);
+        parcel.writeString(poster_path);
         parcel.writeSerializable(release_date);
         parcel.writeDouble(vote_average);
     }

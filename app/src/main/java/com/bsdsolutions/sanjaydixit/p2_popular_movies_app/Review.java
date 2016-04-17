@@ -6,7 +6,7 @@ import android.os.Parcelable;
 /**
  * Created by sanjaydixit on 17/04/16.
  */
-public class Review implements Parcelable {
+public class Review implements  Parcelable{
 
     public String id;
     public String author;
@@ -44,4 +44,5 @@ public class Review implements Parcelable {
         parcel.writeString(content);
         parcel.writeString(url);
     }
+
 }

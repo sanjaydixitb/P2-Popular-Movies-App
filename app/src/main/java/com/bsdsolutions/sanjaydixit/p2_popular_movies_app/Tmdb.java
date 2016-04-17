@@ -105,8 +105,8 @@ public class Tmdb {
         return retrofit;
     }
 
-    public MovieListService movieListService() {
-        return getRetrofit().create(MovieListService.class);
+    public MovieObjectRetreiverService movieListService() {
+        return getRetrofit().create(MovieObjectRetreiverService.class);
     }
 
 }
