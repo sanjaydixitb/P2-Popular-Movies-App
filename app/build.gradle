@@ -39,5 +39,4 @@ dependencies {
     compile 'com.squareup.retrofit2:retrofit:2.0.1'
     compile 'com.squareup.retrofit2:converter-gson:2.0.1'
     compile 'com.squareup.okhttp3:okhttp:3.2.0'
-    compile 'com.github.ksoichiro:android-observablescrollview:1.6.0'
 }

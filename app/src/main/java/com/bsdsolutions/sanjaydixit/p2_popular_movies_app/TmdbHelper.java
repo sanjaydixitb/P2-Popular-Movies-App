@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * Created by sanjaydixit on 17/04/16.
+ * Created by sanjaydixit on 17/04/16 based on TMDB-RX-JAVA at https://github.com/migueljteixeira/tmdb-rx-java/
  */
 public class TmdbHelper {
 
