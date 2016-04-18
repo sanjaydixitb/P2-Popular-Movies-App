@@ -95,11 +95,14 @@ public class MovieArrayAdapter extends RecyclerView.Adapter<MovieArrayAdapter.Mo
             @Override
             public void onClick(View v) {
                 if(holder.mMovieLoaded) {
-                    MovieDetailsFragment detailsFragment= MovieDetailsFragment.create(object);
+                    MovieDetailsFragment detailsFragment;
                     if(MainActivity.detailPage) {
                         detailsFragment = (MovieDetailsFragment)mActivity.getSupportFragmentManager().findFragmentById(R.id.movie_details_container);
+                        detailsFragment.setCheckBoxListener((IFavoriteCheckboxUpdateListener)mActivity);
                         detailsFragment.updateContent(object);
                     } else {
+                        detailsFragment= MovieDetailsFragment.create(object);
+                        detailsFragment.setCheckBoxListener((IFavoriteCheckboxUpdateListener)mActivity);
                         mActivity.getSupportFragmentManager().beginTransaction()
                                 .replace(R.id.movies_grid_container, detailsFragment, null)
                                 .addToBackStack(null)

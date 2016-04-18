@@ -14,6 +14,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -54,10 +55,20 @@ public class MainActivityFragment extends Fragment {
     private static FragmentActivity mActivity = null;
     private static boolean mFavoritesView = false;
 
+    private static FragmentManager mFragmentManager = null;
+
     private static RecyclerView mRecyclerView = null;
 
     public MainActivityFragment() {
         mActivity = getActivity();
+        mFragmentManager = getFragmentManager();
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+        mFragmentManager = getFragmentManager();
     }
 
     @Override
@@ -67,7 +78,6 @@ public class MainActivityFragment extends Fragment {
         View rv = inflater.inflate(R.layout.fragment_main, container, false);
         mRecyclerView = (RecyclerView)rv;
         ButterKnife.bind(this, rv);
-        setHasOptionsMenu(true);
         return rv;
     }
 
@@ -121,11 +131,15 @@ public class MainActivityFragment extends Fragment {
         if (mCurrentPosition != -1)
             mRecyclerView.scrollToPosition(mCurrentPosition);
 
-        if(mFavoritesView){
-            clearMovieList();
-            loadFavorites();
-        } else if (mMoviesList.size() == 0)
-            updateMovieList(mSortByPopularity);
+        if (mMoviesList.size() == 0) {
+            if (mFavoritesView) {
+                clearMovieList();
+                loadFavorites();
+            }
+            else {
+                updateMovieList(mSortByPopularity);
+            }
+        }
 
         mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -142,18 +156,22 @@ public class MainActivityFragment extends Fragment {
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        getActivity().getMenuInflater().inflate(R.menu.menu_main_fragment, menu);
-        return;
+        inflater.inflate(R.menu.menu_main_fragment, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    public static void showOptionDialog() {
+        DialogFragment newFragment = new SortingOptionDialog();
+        DialogFragment oldFragment = (DialogFragment)mFragmentManager.findFragmentByTag("sorting_criteria");
+        if(oldFragment != null)
+            oldFragment.dismiss();
+        newFragment.show(mFragmentManager, "sorting_criteria");
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if(item.getItemId() == R.id.action_settings) {
-            DialogFragment newFragment = new SortingOptionDialog();
-            DialogFragment oldFragment = (DialogFragment)getFragmentManager().findFragmentByTag("sorting_criteria");
-            if(oldFragment != null)
-                oldFragment.dismiss();
-            newFragment.show(getFragmentManager(), "sorting_criteria");
+            mFragmentManager = getFragmentManager();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -195,21 +213,30 @@ public class MainActivityFragment extends Fragment {
         mLoadTask.execute(sortByPopularity);
     }
 
-    public static void updateFavorites() {
-        if(!mFavoritesView)
+    public static void updateFavoriteList(MovieObject movieObject, boolean added) {
+        if(movieObject == null)
             return;
-        clearMovieList();
-        loadFavorites();
+        if(added)
+            mMoviesList.add(movieObject);
+        else {
+            mMoviesList.remove(movieObject);
+            updateContentOfDetailFragment(null);
+        }
+        mMovieArrayAdapter.notifyDataSetChanged();
+    }
+
+    private static void updateContentOfDetailFragment(MovieObject movieObject) {
+        //TODO: Go through main activity
+        if(MainActivity.detailPage) {
+            MovieDetailsFragment detailsFragment = (MovieDetailsFragment) mActivity.getSupportFragmentManager().findFragmentById(R.id.movie_details_container);
+            if(detailsFragment != null)
+                detailsFragment.updateContent(movieObject);
+        }
     }
 
     private static void loadFavorites() {
         //TODO: Load one page of favorites at a time
-        if(MainActivity.detailPage) {
-            MovieDetailsFragment detailsFragment= MovieDetailsFragment.create(null);
-            detailsFragment = (MovieDetailsFragment) mActivity.getSupportFragmentManager().findFragmentById(R.id.movie_details_container);
-            if(detailsFragment != null)
-                detailsFragment.updateContent(null);
-        }
+        updateContentOfDetailFragment(null);
         List<String> movieIds = new ArrayList<>();
         if(mActivity == null) {
             return;
@@ -232,6 +259,7 @@ public class MainActivityFragment extends Fragment {
             public void onPostExecute(MovieObjectResultsPage page) {
                 if (page != null) {
                     mCurrentPage = page;
+                    mMoviesList.clear();
                     mMoviesList.addAll(page.results);
                     mMovieArrayAdapter.notifyDataSetChanged();
                 }

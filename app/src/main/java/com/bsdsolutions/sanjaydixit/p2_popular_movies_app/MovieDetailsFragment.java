@@ -23,6 +23,7 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -46,7 +47,7 @@ public class MovieDetailsFragment extends Fragment {
     private static Integer mRuntime;
     private static List<Video> mVideoList;
     private static List<Review> mReviewList;
-    private MovieObject mMovie;
+    private static MovieObject mMovie;
     private static Video mTrailer;
     private MenuItem mMenuItemShare;
     private MoviesAppHelper mHelper;
@@ -56,6 +57,8 @@ public class MovieDetailsFragment extends Fragment {
     private static MovieVideosAsyncTask mMovieVideosAsyncTask = null;
 
     private List<Runnable> mDeferredUiOperations = new ArrayList<>();
+
+    private IFavoriteCheckboxUpdateListener mCheckBoxListener = null;
 
     @Bind(R.id.movie_title) TextView mTitleView;
     @Bind(R.id.movie_poster_detail) ImageView mPosterView;
@@ -70,6 +73,10 @@ public class MovieDetailsFragment extends Fragment {
 
     public MovieDetailsFragment() {
 
+    }
+
+    public void setCheckBoxListener(IFavoriteCheckboxUpdateListener listener) {
+        mCheckBoxListener  = listener;
     }
 
     public static MovieDetailsFragment create(MovieObject movie) {
@@ -101,30 +108,86 @@ public class MovieDetailsFragment extends Fragment {
         }
     }
 
-    public void updateContent(MovieObject object) {
-        SharedPreferences prefs = getActivity().getSharedPreferences(MovieObjectUtils.KEY_PREFERENCES, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        if(mFavorite) {
-            //Add to shared pref
-            if(prefs != null && editor != null) {
-                if(mMovie != null && mMovie.id != null) {
-                    editor.putBoolean(String.valueOf(mMovie.id), true);
-                    editor.commit();
-                }
+    private void showOrHideViews(boolean show) {
+        if(show) {
+            if (mPosterView != null) {
+                mPosterView.setVisibility(View.VISIBLE);
             }
+            if(mFavoriteCheckBox != null) {
+                mFavoriteCheckBox.setVisibility(View.VISIBLE);
+            }
+            if(mDateView != null) {
+                mDateView.setVisibility(View.VISIBLE);
+            }
+            if(mVoteAverageView != null) {
+                mVoteAverageView.setVisibility(View.VISIBLE);
+            }
+            if(mSynopsysView != null) {
+                mSynopsysView.setVisibility(View.VISIBLE);
+            }
+            View separator = getView().findViewById(R.id.synopsys_separator);
+            if(separator != null)
+                separator.setVisibility(View.VISIBLE);
+            separator = getView().findViewById(R.id.synopsys_detail);
+            if(separator != null)
+                separator.setVisibility(View.VISIBLE);
+            separator = getView().findViewById(R.id.reviews_separator);
+            if(separator != null)
+                separator.setVisibility(View.VISIBLE);
+            separator = getView().findViewById(R.id.videos_separator);
+            if(separator != null)
+                separator.setVisibility(View.VISIBLE);
+            LinearLayout videos = (LinearLayout)getView().findViewById(R.id.videos);
+            if(videos != null)
+                videos.setVisibility(View.VISIBLE);
+            LinearLayout reviews = (LinearLayout)getView().findViewById(R.id.reviews);
+            if(reviews != null)
+                reviews.setVisibility(View.VISIBLE);
         } else {
-            //remove from shared pref
-            if(prefs != null && editor != null) {
-                if(mMovie != null && mMovie.id != null) {
-                    editor.remove(String.valueOf(mMovie.id));
-                    editor.commit();
-                }
+            if(mTitleView != null)
+                mTitleView.setText(getResources().getString(R.string.message_select_movie));
+            if (mPosterView != null) {
+                mPosterView.setVisibility(View.GONE);
             }
+            if(mFavoriteCheckBox != null) {
+                mFavoriteCheckBox.setVisibility(View.GONE);
+            }
+            if(mDateView != null) {
+                mDateView.setVisibility(View.GONE);
+            }
+            if(mVoteAverageView != null) {
+                mVoteAverageView.setVisibility(View.GONE);
+            }
+            if(mSynopsysView != null) {
+                mSynopsysView.setVisibility(View.GONE);
+            }
+            View separator = getView().findViewById(R.id.synopsys_title);
+            if(separator != null)
+                separator.setVisibility(View.GONE);
+            separator = getView().findViewById(R.id.synopsys_separator);
+            if(separator != null)
+                separator.setVisibility(View.GONE);
+            separator = getView().findViewById(R.id.reviews_separator);
+            if(separator != null)
+                separator.setVisibility(View.GONE);
+            separator = getView().findViewById(R.id.videos_separator);
+            if(separator != null)
+                separator.setVisibility(View.GONE);
+            LinearLayout videos = (LinearLayout)getView().findViewById(R.id.videos);
+            if(videos != null)
+                videos.setVisibility(View.GONE);
+            LinearLayout reviews = (LinearLayout)getView().findViewById(R.id.reviews);
+            if(reviews != null)
+                reviews.setVisibility(View.GONE);
         }
+    }
 
+    public void updateContent(MovieObject object) {
         clearContent();
+        boolean newMovie = mMovie != object;
         mMovie = object;
         if (mMovie != null) {
+            showOrHideViews(true);
             mTitleView.setText(mMovie.original_title);
             SharedPreferences preferences = getActivity().getSharedPreferences(MovieObjectUtils.KEY_PREFERENCES,Context.MODE_PRIVATE);
             if(preferences.contains(String.valueOf(mMovie.id))) {
@@ -132,23 +195,46 @@ public class MovieDetailsFragment extends Fragment {
             } else {
                 mFavorite = false;
             }
+            //Dummy onCheckedChangeListener because of poor design :|
+            mFavoriteCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    return;
+                }
+            });
             mFavoriteCheckBox.setChecked(mFavorite);
+            mFavoriteCheckBox.setEnabled(true);
             mFavoriteCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     mFavorite = isChecked;
-//                    try {
-//                        MainActivityFragment mainActivityFragment = (MainActivityFragment) getActivity().getSupportFragmentManager().findFragmentById(R.id.movie_details_container);
-//                        if (mainActivityFragment != null) {
-//                            //update fragment on left side, which is visible
-//                            mainActivityFragment.updateFavorites();
-//                        }
-//                    }
-//                    catch(ClassCastException e) {
-//                        //fragment not visible.
-//                    }
+                    SharedPreferences prefs = getActivity().getSharedPreferences(MovieObjectUtils.KEY_PREFERENCES, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = prefs.edit();
+                    if (mFavorite) {
+                        //Add to shared pref
+                        if (prefs != null && editor != null) {
+                            if (mMovie != null && mMovie.id != null) {
+                                editor.putBoolean(String.valueOf(mMovie.id), true);
+                                editor.commit();
+                            }
+                        }
+                    } else {
+                        //remove from shared pref
+                        if (prefs != null && editor != null) {
+                            if (mMovie != null && mMovie.id != null) {
+                                editor.remove(String.valueOf(mMovie.id));
+                                editor.commit();
+                            }
+                        }
+                    }
+                    if (mCheckBoxListener != null && !mFavorite) {
+                        mCheckBoxListener.checkBoxUpdated(mMovie, mFavorite);
+                    }
+
                 }
             });
+            if(mMovie == null)
+            Log.e(MovieObjectUtils.LOG_TAG,"How is movie null here?");
             String posterPath = mMovie.getPoster_path();
             if(posterPath.compareToIgnoreCase("") != 0 && posterPath.compareToIgnoreCase("null") != 0)
             {
@@ -183,16 +269,19 @@ public class MovieDetailsFragment extends Fragment {
             mVoteAverageView.setText(String.format(getResources().getString(R.string.vote_average_format), mMovie.vote_average));
             mSynopsysView.setText(mMovie.overview);
 
-            getVideos();
-            getReviews();
+            if(mVideoList == null || mVideoList.size() == 0 || newMovie)
+                getVideos();
+            else {
+                loadVideos(mVideoList);
+            }
+            if(mReviewList == null || mReviewList.size() == 0 || newMovie)
+                getReviews();
+            else {
+                loadReviews(mReviewList);
+            }
 
         } else {
-            if(mTitleView != null)
-                mTitleView.setText(getResources().getString(R.string.message_select_movie));
-            if(mFavoriteCheckBox != null) {
-                mFavoriteCheckBox.setEnabled(false);
-                mFavoriteCheckBox.setChecked(false);
-            }
+            showOrHideViews(false);
         }
     }
 
@@ -216,9 +305,14 @@ public class MovieDetailsFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         if (savedInstanceState != null) {
+            showOrHideViews(true);
+            mMovie = savedInstanceState.getParcelable(KEY_MOVIE);
             mRuntime = savedInstanceState.getInt(KEY_RUNTIME);
             mVideoList = savedInstanceState.getParcelableArrayList(KEY_VIDEOS);
             mReviewList = savedInstanceState.getParcelableArrayList(KEY_REVIEWS);
+            updateContent(mMovie);
+        } else {
+            showOrHideViews(false);
         }
 
     }
@@ -229,7 +323,8 @@ public class MovieDetailsFragment extends Fragment {
 
         if(getArguments() != null) {
             MovieObject movie = getArguments().getParcelable(KEY_MOVIE);
-            updateContent(movie);
+            if(movie != null)
+                updateContent(movie);
         }
 
     }
@@ -265,6 +360,7 @@ public class MovieDetailsFragment extends Fragment {
         if (mRuntime != null) outState.putInt(KEY_RUNTIME, mRuntime);
         if (mReviewList != null) outState.putParcelableArrayList(KEY_REVIEWS, new ArrayList<>(mReviewList));
         if (mVideoList != null) outState.putParcelableArrayList(KEY_VIDEOS, new ArrayList<Video>(mVideoList));
+        if (mMovie != null) outState.putParcelable(KEY_MOVIE, mMovie);
     }
 
     @Override
@@ -319,6 +415,8 @@ public class MovieDetailsFragment extends Fragment {
     }
 
     private void loadReviews(List<Review> reviewList) {
+        if(mMovie == null)
+            return;
         mReviewList = reviewList;
 
         boolean hasReviews = false;
@@ -370,9 +468,10 @@ public class MovieDetailsFragment extends Fragment {
     }
 
     private void loadVideos(List<Video> videoList) {
+        if(mMovie == null)
+            return;
+
         mVideoList = videoList;
-
-
         boolean hasVideos = false;
 
         int count = mVideosView.getChildCount();
