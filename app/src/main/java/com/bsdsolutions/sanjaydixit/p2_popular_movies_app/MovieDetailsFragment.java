@@ -2,12 +2,14 @@ package com.bsdsolutions.sanjaydixit.p2_popular_movies_app;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.Preference;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
@@ -18,6 +20,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -46,6 +50,7 @@ public class MovieDetailsFragment extends Fragment {
     private static Video mTrailer;
     private MenuItem mMenuItemShare;
     private MoviesAppHelper mHelper;
+    private boolean mFavorite = false;
 
     private static MovieReviewsAsyncTask mMovieReviewsAsyncTask = null;
     private static MovieVideosAsyncTask mMovieVideosAsyncTask = null;
@@ -55,13 +60,13 @@ public class MovieDetailsFragment extends Fragment {
     @Bind(R.id.movie_title) TextView mTitleView;
     @Bind(R.id.movie_poster_detail) ImageView mPosterView;
     @Bind(R.id.synopsys_date) TextView mDateView;
-    @Bind(R.id.runtime) TextView mRuntimeView;
     @Bind(R.id.vote_average_detail) TextView mVoteAverageView;
     @Bind(R.id.synopsys_detail) TextView mSynopsysView;
     @Bind(R.id.videos) ViewGroup mVideosView;
     @Bind(R.id.reviews) ViewGroup mReviewsView;
     @Bind(R.id.detailLoadingAnimation) ProgressBar mLoadingBarView;
     @Bind(R.id.fail_load_image_textView_detail) TextView mErrorTextView;
+    @Bind(R.id.favorite_check_box) CheckBox mFavoriteCheckBox;
 
     public MovieDetailsFragment() {
 
@@ -94,6 +99,8 @@ public class MovieDetailsFragment extends Fragment {
                 mVideosView.removeViews(2, count - 2);
             }
         }
+        if(mFavoriteCheckBox != null)
+            mFavoriteCheckBox.setChecked(false);
     }
 
     public void updateContent(MovieObject object) {
@@ -101,6 +108,34 @@ public class MovieDetailsFragment extends Fragment {
         mMovie = object;
         if (mMovie != null) {
             mTitleView.setText(mMovie.original_title);
+            SharedPreferences preferences = getActivity().getSharedPreferences(MovieObjectUtils.KEY_PREFERENCES,Context.MODE_PRIVATE);
+            if(preferences.contains(String.valueOf(mMovie.id))) {
+                mFavorite = true;
+            } else {
+                mFavorite = false;
+            }
+            mFavoriteCheckBox.setChecked(mFavorite);
+            mFavoriteCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    mFavorite = isChecked;
+                    SharedPreferences prefs = getActivity().getSharedPreferences(MovieObjectUtils.KEY_PREFERENCES, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = prefs.edit();
+                    if(mFavorite) {
+                        //Add to shared pref
+                        if(prefs != null && editor != null) {
+                            editor.putBoolean(String.valueOf(mMovie.id),true);
+                            editor.commit();
+                        }
+                    } else {
+                        //remove from shared pref
+                        if(prefs != null && editor != null) {
+                            editor.remove(String.valueOf(mMovie.id));
+                            editor.commit();
+                        }
+                    }
+                }
+            });
             String posterPath = mMovie.getPoster_path();
             if(posterPath.compareToIgnoreCase("") != 0 && posterPath.compareToIgnoreCase("null") != 0)
             {
@@ -128,8 +163,6 @@ public class MovieDetailsFragment extends Fragment {
             Calendar cal = Calendar.getInstance();
             cal.setTime(mMovie.release_date);
             mDateView.setText(Integer.toString(cal.get(Calendar.YEAR)));
-            if (mRuntimeView != null)
-                mRuntimeView.setText(String.format(getResources().getString(R.string.runtime_format), mRuntime));
             mVoteAverageView.setText(String.format(getResources().getString(R.string.vote_average_format), mMovie.vote_average));
             mSynopsysView.setText(mMovie.overview);
 
@@ -138,6 +171,7 @@ public class MovieDetailsFragment extends Fragment {
 
         } else {
             mTitleView.setText(getResources().getString(R.string.message_select_movie));
+            mFavoriteCheckBox.setChecked(false);
         }
     }
 
@@ -165,6 +199,7 @@ public class MovieDetailsFragment extends Fragment {
             mVideoList = savedInstanceState.getParcelableArrayList(KEY_VIDEOS);
             mReviewList = savedInstanceState.getParcelableArrayList(KEY_REVIEWS);
         }
+
     }
 
     @Override

@@ -5,7 +5,7 @@
     <string name="videos_title">Trailers</string>
     <string name="reviews_title">Reviews</string>
     <string name="loading_movie_details">Loading movie details.</string>
-    <string name="pick_sorting_criteria">Select Sorting Criteria:</string>image_load_fail
+    <string name="pick_sorting_criteria">View:</string>image_load_fail
     <string name="image_load_fail">Failed to Load Image!</string>
 
     <string name="runtime_format">%d min</string>
@@ -17,5 +17,6 @@
     <string name="share_template">Check out \'<xliff:g id="title">%1$s</xliff:g>\' at <xliff:g id="url">%2$s</xliff:g></string>
 
     <string name="message_select_movie">Select a movie to view details!</string>
+    <string name="favorite">Favorite</string>
 
 </resources>

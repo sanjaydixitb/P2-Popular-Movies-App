@@ -3,8 +3,9 @@
 
     <string-array
         name="sorting_options">
-        <item>Popularity</item>
-        <item>Rating</item>
+        <item>All Movies By Popularity</item>
+        <item>All Movies By Rating</item>
+        <item>Favorite Movies</item>
     </string-array>
 
 </resources>

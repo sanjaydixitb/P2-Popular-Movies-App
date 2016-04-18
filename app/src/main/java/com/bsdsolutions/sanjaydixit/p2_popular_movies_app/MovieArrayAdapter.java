@@ -2,7 +2,6 @@ package com.bsdsolutions.sanjaydixit.p2_popular_movies_app;
 
 import android.support.v4.app.FragmentActivity;
 import android.content.Context;
-import android.content.Intent;
 import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -44,7 +43,7 @@ public class MovieArrayAdapter extends RecyclerView.Adapter<MovieArrayAdapter.Mo
 
     @Override
     public MovieViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.gridview_item_layout,parent,false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.recycler_view_item_layout,parent,false);
         return new MovieViewHolder(view);
     }
 

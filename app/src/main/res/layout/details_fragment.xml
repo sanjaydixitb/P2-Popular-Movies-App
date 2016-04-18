@@ -73,20 +73,17 @@
             android:layout_marginLeft="15sp"
             android:layout_weight="1">
 
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/favorite"
+                android:id="@+id/favorite_check_box" />
+
             <TextView
                 android:id="@+id/synopsys_date"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textSize="30sp"
-                android:textStyle="italic"
-                android:textAlignment="center"
-                android:gravity="center"/>
-
-            <TextView
-                android:id="@+id/runtime"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="20sp"
                 android:textStyle="italic"
                 android:textAlignment="center"
                 android:gravity="center"/>

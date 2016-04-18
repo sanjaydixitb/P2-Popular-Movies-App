@@ -7,7 +7,9 @@ public class MovieObjectUtils {
 
     public static final String KEY_OBJECT_CONTENT_EXTRA = "movie_object_content_key_extra";
 
-    public static final String LOG_TAG = "PopularMoviesApp-P1";
+    public static final String KEY_PREFERENCES = "PopularMoviesApp-2";
+
+    public static final String LOG_TAG = "PopularMoviesApp-P2";
 
     public static final String IMAGE_BASE_URI = "http://image.tmdb.org/t/p/";
 

@@ -1,7 +1,10 @@
 package com.bsdsolutions.sanjaydixit.p2_popular_movies_app;
 
+import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.app.AlertDialog;
@@ -24,6 +27,7 @@ import android.view.ViewGroup;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import butterknife.ButterKnife;
 import retrofit2.Call;
@@ -42,13 +46,17 @@ public class MainActivityFragment extends Fragment {
     private static MovieArrayAdapter mMovieArrayAdapter = null;
     private static List<MovieObject> mMoviesList = null;
     private static MovieLoadTask mLoadTask = null;
+    private static FavoriteLoadTask mFavoriteTask = null;
     private static boolean mSortByPopularity = true;
     private static int mCurrentPosition = -1;
     private static MovieObjectResultsPage mCurrentPage = null;
+    private static Activity mActivity = null;
+    private static boolean mFavoritesView = false;
 
     private static RecyclerView mRecyclerView = null;
 
     public MainActivityFragment() {
+        mActivity = getActivity();
     }
 
     @Override
@@ -77,6 +85,8 @@ public class MainActivityFragment extends Fragment {
             if(mMoviesList == null)
             mMoviesList = new ArrayList<>();
         }
+
+        mActivity = getActivity();
 
         initRecyclerView();
 
@@ -110,7 +120,10 @@ public class MainActivityFragment extends Fragment {
         if (mCurrentPosition != -1)
             mRecyclerView.scrollToPosition(mCurrentPosition);
 
-        if (mMoviesList.size() == 0)
+        if(mFavoritesView){
+            clearMovieList();
+            loadFavorites();
+        } else if (mMoviesList.size() == 0)
             updateMovieList(mSortByPopularity);
 
         mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -118,7 +131,7 @@ public class MainActivityFragment extends Fragment {
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
 
-                if (newState == RecyclerView.SCROLL_STATE_DRAGGING &&
+                if (!mFavoritesView && newState == RecyclerView.SCROLL_STATE_DRAGGING &&
                         (double) ((GridLayoutManager) mRecyclerView.getLayoutManager()).findLastVisibleItemPosition() / (double) mMovieArrayAdapter.getItemCount() >= SCROLL_RATIO)
                     updateMovieList(mSortByPopularity);
             }
@@ -154,11 +167,11 @@ public class MainActivityFragment extends Fragment {
     }
 
     public static void updateMovieList(boolean sortByPopularity) {
-        mSortByPopularity = sortByPopularity;
         if(mLoadTask != null && mLoadTask.getStatus() == AsyncTask.Status.RUNNING) {
-            Log.v(MovieObjectUtils.LOG_TAG,"Cancelling Running task");
-            mLoadTask.cancel(true);
+            Log.v(MovieObjectUtils.LOG_TAG, "Already Running a task");
+            return;
         }
+        mSortByPopularity = sortByPopularity;
         mLoadTask = new MovieLoadTask(new IMovieResultsCallback<MovieObjectResultsPage>() {
             @Override
             public void onPostExecute(MovieObjectResultsPage page) {
@@ -177,6 +190,100 @@ public class MainActivityFragment extends Fragment {
         }, mCurrentPage != null ? mCurrentPage.page+1 : 1);
         mLoadTask.execute(sortByPopularity);
     }
+
+    private static void loadFavorites() {
+        //TODO: Load one page of favorites at a time
+        List<String> movieIds = new ArrayList<>();
+        if(mActivity == null) {
+            return;
+        }
+        SharedPreferences prefs = mActivity.getSharedPreferences(MovieObjectUtils.KEY_PREFERENCES, Context.MODE_PRIVATE);
+
+        if(prefs != null) {
+            Map<String, ?> allEntries = prefs.getAll();
+            for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
+                movieIds.add(entry.getKey());
+            }
+        }
+
+        if(mFavoriteTask != null && mFavoriteTask.getStatus() == AsyncTask.Status.RUNNING) {
+            Log.v(MovieObjectUtils.LOG_TAG, "Cancelling Running Favorite task");
+            mFavoriteTask.cancel(true);
+        }
+        mFavoriteTask = new FavoriteLoadTask(new IMovieResultsCallback<MovieObjectResultsPage>() {
+            @Override
+            public void onPostExecute(MovieObjectResultsPage page) {
+                if (page != null) {
+                    mCurrentPage = page;
+                    mMoviesList.addAll(page.results);
+                    mMovieArrayAdapter.notifyDataSetChanged();
+                }
+            }
+
+            @Override
+            public void onCancelled() {
+                mMoviesList.clear();
+                mMovieArrayAdapter.notifyDataSetChanged();
+            }
+        }, mCurrentPage != null && mCurrentPage.page != null ? mCurrentPage.page+1 : 1);
+        mFavoriteTask.execute(movieIds);
+    }
+
+    private static class FavoriteLoadTask extends AsyncTask<List<String>, Void, MovieObjectResultsPage> {
+
+        public IMovieResultsCallback<MovieObjectResultsPage> mCallback;
+        private Integer mPageNumber;
+
+        private static final Tmdb manager = Tmdb.getInstance();
+
+        public FavoriteLoadTask(IMovieResultsCallback<MovieObjectResultsPage> callback, int page) {
+            mCallback = callback;
+            mPageNumber = page;
+        }
+
+        @Override
+        protected MovieObjectResultsPage doInBackground(List<String>... params) {
+
+            List<String> movieIds = new ArrayList<>();
+            if(params.length > 0) {
+                for(int i=0; i<params.length; i++) {
+                    for(int j=0; j<params[i].size(); j++) {
+                        if(!movieIds.contains(params[i].get(j))) {
+                            movieIds.add(params[i].get(j));
+                        }
+                    }
+                }
+            }
+
+            MovieObjectResultsPage page = new MovieObjectResultsPage();
+            page.results = new ArrayList<>();
+            Log.v(MovieObjectUtils.LOG_TAG,"Getting favorites :");
+            for(int i=0 ;i <movieIds.size(); i++) {
+                if(movieIds.get(i) == null)
+                    continue;
+                Call<MovieObject> call = manager.movieListService().summary(Integer.parseInt(movieIds.get(i)), null,null);
+                try {
+                    MovieObject newObject = call.execute().body();
+                    if(newObject != null)
+                        page.results.add(newObject);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            return page;
+        }
+
+        @Override
+        protected void onPostExecute(MovieObjectResultsPage moviesPage) {
+            mCallback.onPostExecute(moviesPage);
+        }
+
+        @Override
+        protected void onCancelled() {
+            mCallback.onCancelled();
+        }
+    }
+
 
     private static class MovieLoadTask extends AsyncTask<Boolean, Void, MovieObjectResultsPage> {
 
@@ -240,7 +347,13 @@ public class MainActivityFragment extends Fragment {
                     .setItems(R.array.sorting_options, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             clearMovieList();
-                            updateMovieList(which == 0);
+                            mFavoritesView = false;
+                            if(which < 1)
+                                updateMovieList(which == 0);
+                            else if(which == 2) {
+                                mFavoritesView = true;
+                                loadFavorites();
+                            }
                         }
                     });
             return builder.create();
