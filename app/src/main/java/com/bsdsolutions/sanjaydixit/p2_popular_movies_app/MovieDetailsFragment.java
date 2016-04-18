@@ -99,11 +99,29 @@ public class MovieDetailsFragment extends Fragment {
                 mVideosView.removeViews(2, count - 2);
             }
         }
-        if(mFavoriteCheckBox != null)
-            mFavoriteCheckBox.setChecked(false);
     }
 
     public void updateContent(MovieObject object) {
+        SharedPreferences prefs = getActivity().getSharedPreferences(MovieObjectUtils.KEY_PREFERENCES, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        if(mFavorite) {
+            //Add to shared pref
+            if(prefs != null && editor != null) {
+                if(mMovie != null && mMovie.id != null) {
+                    editor.putBoolean(String.valueOf(mMovie.id), true);
+                    editor.commit();
+                }
+            }
+        } else {
+            //remove from shared pref
+            if(prefs != null && editor != null) {
+                if(mMovie != null && mMovie.id != null) {
+                    editor.remove(String.valueOf(mMovie.id));
+                    editor.commit();
+                }
+            }
+        }
+
         clearContent();
         mMovie = object;
         if (mMovie != null) {
@@ -119,21 +137,16 @@ public class MovieDetailsFragment extends Fragment {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     mFavorite = isChecked;
-                    SharedPreferences prefs = getActivity().getSharedPreferences(MovieObjectUtils.KEY_PREFERENCES, Context.MODE_PRIVATE);
-                    SharedPreferences.Editor editor = prefs.edit();
-                    if(mFavorite) {
-                        //Add to shared pref
-                        if(prefs != null && editor != null) {
-                            editor.putBoolean(String.valueOf(mMovie.id),true);
-                            editor.commit();
-                        }
-                    } else {
-                        //remove from shared pref
-                        if(prefs != null && editor != null) {
-                            editor.remove(String.valueOf(mMovie.id));
-                            editor.commit();
-                        }
-                    }
+//                    try {
+//                        MainActivityFragment mainActivityFragment = (MainActivityFragment) getActivity().getSupportFragmentManager().findFragmentById(R.id.movie_details_container);
+//                        if (mainActivityFragment != null) {
+//                            //update fragment on left side, which is visible
+//                            mainActivityFragment.updateFavorites();
+//                        }
+//                    }
+//                    catch(ClassCastException e) {
+//                        //fragment not visible.
+//                    }
                 }
             });
             String posterPath = mMovie.getPoster_path();
@@ -142,14 +155,18 @@ public class MovieDetailsFragment extends Fragment {
                 Picasso.with(getActivity()).load(posterPath).into(mPosterView, new Callback() {
                     @Override
                     public void onSuccess() {
-                        mLoadingBarView.setVisibility(View.GONE);
-                        mPosterView.setVisibility(View.VISIBLE);
+                        if(mLoadingBarView != null)
+                            mLoadingBarView.setVisibility(View.GONE);
+                        if(mPosterView != null)
+                            mPosterView.setVisibility(View.VISIBLE);
                     }
 
                     @Override
                     public void onError() {
-                        mErrorTextView.setVisibility(View.VISIBLE);
-                        mLoadingBarView.setVisibility(View.GONE);
+                        if(mErrorTextView != null)
+                            mErrorTextView.setVisibility(View.VISIBLE);
+                        if(mLoadingBarView != null)
+                            mLoadingBarView.setVisibility(View.GONE);
                     }
                 });
             }
@@ -170,8 +187,12 @@ public class MovieDetailsFragment extends Fragment {
             getReviews();
 
         } else {
-            mTitleView.setText(getResources().getString(R.string.message_select_movie));
-            mFavoriteCheckBox.setChecked(false);
+            if(mTitleView != null)
+                mTitleView.setText(getResources().getString(R.string.message_select_movie));
+            if(mFavoriteCheckBox != null) {
+                mFavoriteCheckBox.setEnabled(false);
+                mFavoriteCheckBox.setChecked(false);
+            }
         }
     }
 
@@ -248,6 +269,25 @@ public class MovieDetailsFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
+        SharedPreferences prefs = getActivity().getSharedPreferences(MovieObjectUtils.KEY_PREFERENCES, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        if(mFavorite) {
+            //Add to shared pref
+            if(prefs != null && editor != null) {
+                if(mMovie != null && mMovie.id != null) {
+                    editor.putBoolean(String.valueOf(mMovie.id), true);
+                    editor.commit();
+                }
+            }
+        } else {
+            //remove from shared pref
+            if(prefs != null && editor != null) {
+                if(mMovie != null && mMovie.id != null) {
+                    editor.remove(String.valueOf(mMovie.id));
+                    editor.commit();
+                }
+            }
+        }
         if(mMovieReviewsAsyncTask != null && mMovieReviewsAsyncTask.getStatus() == AsyncTask.Status.RUNNING) {
             mMovieReviewsAsyncTask.cancel(true);
             mMovieReviewsAsyncTask = null;

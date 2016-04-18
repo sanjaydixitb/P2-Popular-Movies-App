@@ -13,6 +13,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -50,7 +51,7 @@ public class MainActivityFragment extends Fragment {
     private static boolean mSortByPopularity = true;
     private static int mCurrentPosition = -1;
     private static MovieObjectResultsPage mCurrentPage = null;
-    private static Activity mActivity = null;
+    private static FragmentActivity mActivity = null;
     private static boolean mFavoritesView = false;
 
     private static RecyclerView mRecyclerView = null;
@@ -149,6 +150,9 @@ public class MainActivityFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         if(item.getItemId() == R.id.action_settings) {
             DialogFragment newFragment = new SortingOptionDialog();
+            DialogFragment oldFragment = (DialogFragment)getFragmentManager().findFragmentByTag("sorting_criteria");
+            if(oldFragment != null)
+                oldFragment.dismiss();
             newFragment.show(getFragmentManager(), "sorting_criteria");
             return true;
         }
@@ -191,8 +195,21 @@ public class MainActivityFragment extends Fragment {
         mLoadTask.execute(sortByPopularity);
     }
 
+    public static void updateFavorites() {
+        if(!mFavoritesView)
+            return;
+        clearMovieList();
+        loadFavorites();
+    }
+
     private static void loadFavorites() {
         //TODO: Load one page of favorites at a time
+        if(MainActivity.detailPage) {
+            MovieDetailsFragment detailsFragment= MovieDetailsFragment.create(null);
+            detailsFragment = (MovieDetailsFragment) mActivity.getSupportFragmentManager().findFragmentById(R.id.movie_details_container);
+            if(detailsFragment != null)
+                detailsFragment.updateContent(null);
+        }
         List<String> movieIds = new ArrayList<>();
         if(mActivity == null) {
             return;
@@ -348,7 +365,7 @@ public class MainActivityFragment extends Fragment {
                         public void onClick(DialogInterface dialog, int which) {
                             clearMovieList();
                             mFavoritesView = false;
-                            if(which < 1)
+                            if(which <= 1)
                                 updateMovieList(which == 0);
                             else if(which == 2) {
                                 mFavoritesView = true;
